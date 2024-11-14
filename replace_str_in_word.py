@@ -1,5 +1,17 @@
 from pathlib import Path
 import win32com.client  # pip install pywin32
+import tkinter as tk
+from tkinter import simpledialog
+
+# Crear la ventana de diálogo para ingresar los valores
+root = tk.Tk()
+root.withdraw()  # Oculta la ventana principal de tkinter
+
+# Solicitar al usuario los valores de las variables
+find_str = simpledialog.askstring("Entrada", "Palabra original (que está en el documento):")
+replace_with = simpledialog.askstring("Entrada", "Palabra a reemplazar:")
+link_find_str = simpledialog.askstring("Entrada", "Ingrese el enlace original (que esta en el documento):")
+link_replace_with = simpledialog.askstring("Entrada", "Ingrese el enlace de reemplazo:")
 
 # Configuración de rutas
 current_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
@@ -9,11 +21,6 @@ pdf_dir = output_dir / "pdf"
 output_dir.mkdir(parents=True, exist_ok=True)
 pdf_dir.mkdir(parents=True, exist_ok=True)
 
-# Texto para encontrar y reemplazar
-find_str = "AFIP"
-replace_with = "ARCA"
-link_find_str = "https://cordobagob.sharepoint.com/sites/ConocimientoRENTAS/Documentos compartidos/Instructivos/Ciudadano Digital cidi y DFE.pdf?CT=1693226614595&OR=ItemsView"
-link_replace_with = "https://www.arca.gob.ar"
 wd_replace = 2  # 2=replace all occurrences
 wd_find_wrap = 1  # 1=continue search
 
@@ -44,19 +51,21 @@ for doc_file in Path(input_dir).rglob("*.doc*"):
         )
 
         # Reemplazar texto en formas (si las hay)
-        for i in range(doc.Shapes.Count):
-            if doc.Shapes(i + 1).TextFrame.HasText:
-                words = doc.Shapes(i + 1).TextFrame.TextRange.Words
-                for j in range(words.Count):
-                    if words.Item(j + 1).Text == find_str:
-                        words.Item(j + 1).Text = replace_with
+        if find_str and replace_with:
+            for i in range(doc.Shapes.Count):
+                if doc.Shapes(i + 1).TextFrame.HasText:
+                    words = doc.Shapes(i + 1).TextFrame.TextRange.Words
+                    for j in range(words.Count):
+                        if words.Item(j + 1).Text == find_str:
+                            words.Item(j + 1).Text = replace_with
 
         # Reemplazar enlaces en el documento
-        for hyperlink in doc.Hyperlinks:
-            if link_find_str in hyperlink.Address:
-                hyperlink.Address = hyperlink.Address.replace(link_find_str, link_replace_with)
-            if link_find_str in hyperlink.TextToDisplay:
-                hyperlink.TextToDisplay = hyperlink.TextToDisplay.replace(link_find_str, link_replace_with)
+        if link_find_str and link_replace_with:
+            for hyperlink in doc.Hyperlinks:
+                if link_find_str in hyperlink.Address:
+                    hyperlink.Address = hyperlink.Address.replace(link_find_str, link_replace_with)
+                if link_find_str in hyperlink.TextToDisplay:
+                    hyperlink.TextToDisplay = hyperlink.TextToDisplay.replace(link_find_str, link_replace_with)
 
         # Guardar el archivo .docx modificado en la carpeta de salida
         output_path = output_dir / f"{doc_file.stem}{doc_file.suffix}"
