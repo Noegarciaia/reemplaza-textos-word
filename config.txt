@@ -1,4 +1,0 @@
-palabra_original=AFIP
-reemplazar_por=PIPI
-link_original=
-reemplazar_link_por=
