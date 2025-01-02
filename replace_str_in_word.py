@@ -50,14 +50,16 @@ for doc_file in Path(input_dir).rglob("*.doc*"):
             Format=True,
         )
 
-        # Reemplazar texto en formas (si las hay)
+        # Reemplazar texto en cuadros de texto (y otras formas)
         if find_str and replace_with:
-            for i in range(doc.Shapes.Count):
-                if doc.Shapes(i + 1).TextFrame.HasText:
-                    words = doc.Shapes(i + 1).TextFrame.TextRange.Words
-                    for j in range(words.Count):
-                        if words.Item(j + 1).Text == find_str:
-                            words.Item(j + 1).Text = replace_with
+            for i in range(1, doc.Shapes.Count + 1):
+                shape = doc.Shapes(i)
+                # Verificamos si la forma es un cuadro de texto o un cuadro con texto
+                if shape.Type == 17:  # Tipo 17 es un cuadro de texto
+                    if shape.TextFrame.HasText:  # Verificar si tiene texto
+                        text_range = shape.TextFrame.TextRange
+                        # Reemplazar el texto dentro del cuadro de texto
+                        text_range.Find.Execute(FindText=find_str, ReplaceWith=replace_with, Replace=wd_replace)
 
         # Reemplazar enlaces en el documento
         if link_find_str and link_replace_with:
